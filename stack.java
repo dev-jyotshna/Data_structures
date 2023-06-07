@@ -18,3 +18,16 @@ public class Stack <T> implements Iterable <T> {
   public boolean isEmpty(){
     return size() == 0;
   }
+  
+  // Push an element on the stack
+  public void push(T elem) {
+    list.addLast(elem);
+  }
+  
+  //Pop an elemet off the stack
+  //Throw an error if the stack is empty
+  public T pop() {
+    if(isEmpty())
+      throw new java.util.EmptyStackException();
+    return list.removeLast();
+  }

@@ -31,3 +31,17 @@ public class Stack <T> implements Iterable <T> {
       throw new java.util.EmptyStackException();
     return list.removeLast();
   }
+  
+  //Peek the top of the stack without removing an elemet
+  //Throw an exception if the stack is empty
+  public T peek() {
+    if (isEmpty())
+      throw new java.util.EmptyStackException();
+    return list.peekLast();
+  }
+  
+  //Allow users to iterate thorugh the stack using an iterator
+  @Override public java.util.Iterator <T> iterator() {
+    return list.iterator();
+  }
+}

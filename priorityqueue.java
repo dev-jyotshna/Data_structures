@@ -165,4 +165,69 @@ class PQueue <T extends Comparable <T>> {
       return index != null;
     }
     
-    //Removes a node 
+    //Removes a node at a particular index, O(log(n))
+    private T removeAt(int i){
+      if(isEmpty()) return null;
+      
+      heapSize--;
+      T removed_data = heap.get(i);
+      swap(i, heapSize);
+      
+      //Obliterate the value
+      heap.set(heapSize, null);
+      mapRemove(removed_data, heapSize);
+      
+      //Removed last element 
+      if(i == heapSize) return removed_data;
+      
+      T elem = heap.get(i);
+      
+      //Try sinking element
+      sink(i);
+      //If sinking didn't work try swimming
+      if( heap.get(i).equals(elem))
+        swim(i);
+      return removed_data;
+    }
+    
+    //Recursively checks if this heap is a min heap
+    //This method is just for testing integrity of min heap
+    //& it makes sure heap invariant is maintained , k = 0 is the root
+    public boolean isMinHeap(int k) {
+      //If we are outside the bounds of the heap return true
+      if(k >= heapsize) return true;
+      
+      int left = 2 * k + 1;
+      int right = 2 * k + 2;
+      
+      // Make sure the current node k is less than both of its children left & right , if the exist
+      // otherwise return false to indicate an invalid heap
+      if(left < heapSize && !less(k, left))   return false;
+      if(right < heapSize && !less(k, right)) return false;
+      
+      //Recurse on both children to make sure they're also valid heap
+      return isMinHeap(left) && isMinHeap(right);
+    }
+    
+    //Add a node value and its index to the map
+    private void mapAdd(T value , int index) {
+      TreeSet <Integer> set = map.get(value); //TreeSet use becuz it is a binary banlanced tree
+      
+      //New value being inserted in the map
+      if(set == null) {
+        set = new TreeSet<>();
+        set.add(index);
+        map.put(value, set);
+      }
+      // value already exists in the map
+      else set.add(index);
+    }
+    
+    //Remove sthe index at a given value, O(log(n))
+    private void mapRemove(T value, int index) {
+      TreeSet <Integer> set = map.get(value);
+      set.remove(index); // TreeSet takes O(log(n)) removal time
+      if(set.size() == 0) map.remove(value);
+    }
+    2:28:05
+      

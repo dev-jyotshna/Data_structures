@@ -87,4 +87,82 @@ class PQueue <T extends Comparable <T>> {
     
     //Adds an element t the priority queue , the element must not be null, O(log(n))
     public void add(T elem) {
-      2:19:24
+      if( elem == null) throw new IllegalArgumentException();
+      
+      if(heapSize < heapCapacity)
+        heap.set(heapSize, elem);
+      else {
+        heap.add(elem);
+        heapCapacity++;
+      }
+      mapAdd(elem, heapSize); //Add tp map to keep track of elem
+      swim(heapSize); //elem added at the end of the heap, swim up the element
+      heapSize++;
+    }
+    
+    //Tests if the value of node i <= node j
+    //This method assumes i & j are valid indices, O(1)
+    private boolean less(int i, int j){
+      T node1 = heap.get(i);
+      T node2 = heap.get(j);
+      return node1.compareTo(node2) <= 0;
+    }
+    
+    //Bottom up node swim, O(log(n)
+    private void swim(int k){
+      //Grab the index of the parent node of k
+      int parent = (k-1)/2; 
+      
+      //Keep swimming while we have not reached the root & while we're less than our parent.
+      while (k > 0 && less(k, parent)) { //k < parent (MINHEAP)
+        swap(parent, k);
+        k = parent;
+        parent = (k-1)/2;
+      }
+    }
+    
+    //Top down node sink, O(log(n))
+    private void sink (int k) {
+      while(true){
+        int left = 2*k + 1;
+        int right = 2*k + 2;
+        int smallest = left;
+        if(right < heapSize && less(right,left))
+           smallest = right;
+        if(left >= heapSize || less(k,smallest)) break; //termination condition
+        //Move down the tree following the smallest node
+        swap(smallest, k);
+        k = smallest;
+     }
+    }
+    
+    //Swap two nodes. Assume i & j are valid, O(1)
+    private void swap(int i , int j){
+      T ielem = heap.get(i);
+      T jelem = heap.get(j);
+      
+      heap.set(i, jelem);
+      heap.set(j, ielem);
+      
+      mapSwap(ielem, jelem, i, j);
+    }
+    
+    //Remove a particular element int the heap, O(log(n))
+    public boolean remove(T element){
+      if(element == null) return false;
+      
+      //Linear reomoval via serach, O(n)
+      //for(int i = 0; i < heapSize;i++) {
+      //  if( element.equals(heap.get(i))){
+      //    removeAt(i);
+      //    return true;
+      //  }
+      // }
+      
+     //Logarithmic removal map, O(log(n)
+      Integer index = mapGet(element);
+      if(index != null) removeAt(index);
+      return index != null;
+    }
+    
+    //Removes a node 

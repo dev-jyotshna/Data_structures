@@ -229,5 +229,29 @@ class PQueue <T extends Comparable <T>> {
       set.remove(index); // TreeSet takes O(log(n)) removal time
       if(set.size() == 0) map.remove(value);
     }
-    2:28:05
+    
+    //Extract index position of the given value 
+    //Note: If a value exists multiple times in the heap the highest index is returned( That has been arbitrarily chosen)
+    private Integer mapGet(T value) {
+      TreeSet <Integer> set = map.get(value);
+      if(set != null) return set.last();
+      return null;
+    }
+    
+    //Exchange the index of the two nodes internally within the map
+    private void mapSwap(T val1, T val2 , int val1Index, int val2Index) {
+      Set <Integer> set1 = map.get(val1);
+      Set <Integer> set2 = map.get(val2);
       
+      set1.remove(val1Index);
+      set2.remove(val2Index);
+      
+      set1.add(val2Index);
+      set2.add(val1Index);
+    }
+    
+    @Override public String toString() {
+      return heap.toString();
+    }
+  }
+  

@@ -137,20 +137,120 @@ public class HashTableSeparateChaining <K, V> implements Iterable <K> {
     }
   }
   
-  //
+  //Finds and returns particular entry in a given bucket if it exists, returns null otherwise
+  private Entry <K,V> bucketSeekEntry(int bucketIndex, K key) {
+    if(key == null) return null;
     
+    LinkedList <Entry<K,V>> bucket = table[bucketIndex];
+    if(bucket == null) return null;
+    for(Entry <K, V> entry : bucket)
+      if( entry.key.equals(key))
+        return entry;
+    return null;
+  }
+  
+  //Resizes the internal table holding buckets of entries 
+  private void resizeTable() {
+    capacity *= 2;
+    threshold = (int) (capacity * maxLoadFactor);
     
+    LinkedList <Entry<K,V>> [] newTable = new LinkedList[capacity];
     
+    for(int i = 0; i < table.length; i++){
+      if( table[i] != null) {
+        for( Entry <K,V> entry : table[i]) {
+          int bucketIndex = normalizeIndex(entry.hash);
+          LinkedList <Entry<K,V>> bucket = newTable[bucketIndex];
+          if(bucket == null) newTable[bucketIndex] = bucket = new LinkedList<> ();
+          bucket.add(entry);
+        }
+        
+        //Avoid memory leak. Help the GC// Remove the old table
+        table[i].clear();
+        table[i] = null;
+      }
+    }
+    table = newTable;
+  }
+  
+  //Returns the list of keys found within the hash table
+  public List <K> keys() {
     
+    List <K> keys = new ArrayList<>( size());
+    for( LinkedList<Entry<K,V>> bucket : table)
+      if(bucket != null)
+        for(Entry<K,V> entry : bucket)
+          keys.add(entry.key);
+    return keys;
+  }
+  
+  //Returns the list of values found within the hash table
+  public List <V> values() {
     
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
-    
+    List <V> values = new ArrayList<>(size());
+    for( LinkedList<Entry<K,V>> bucket : table)
+      if( bucket != null)
+        for( Entry <K,V> entry : bucket)
+          values.add(entry.value);
+    return values;
+  }
+  
+  //Return an iterator over all the keys in this map
+  @Override
+  public java.util.Iterator<K> iterator() {
+    final int elementCount = size();
+    return new java.util.Iterator<K>() {
+      
+      int bucketIndex = 0;
+      java.util.Iterator<Entry<K,V>> bucketIter = (table[0] == null) ? null : table[0].iterator();
+      
+      @Override
+      public boolean hasNext() {
+        
+        //An item was added or removed while iterating 
+        if( elementCount != size) throw new java.util.ConcurrentModificationException();
+        
+        //No iterator or the current iterator is empty
+        if( bucketIter == null || !bucketIter.hasNext()) {
+          
+          //Search next buckets until a valid iterator is found
+          while( ++bucketIndex < capacity) {
+            if( table[bucketIndex] != null) {
+              
+              //Make sure this iterator actually has element 
+              java.util.Iterator<Entry<K,V>> nextIter = table[bucketIndex].iterator();
+              if( nextIter.hasNext()) {
+                bucketIter = nextIter;
+                break;
+              }
+            }
+          }
+        }
+        return bucketIndex < capacity;
+      }
+      
+      @Override
+      public K next() {
+        return bucketIter.next().key;
+      }
+      
+      @Override 
+      public void remove() {
+        throw new UnsupportedOperationException();
+      }
+    };
+  }
+  
+  //Return a string representation of thi hash table
+  @Override
+  public String toString() {
+    StringBuilder sb = new StringBuilder();
+    sb.append("{");
+    for( itn i = 0; i < capacity; i++) {
+      if( table[i] == null) continue;
+      for( Entry<K,V> entry : table[i]) sb.append(entry + ", ");
+    }
+    sb.append("}");
+    return sb.toString();
+  }
+}

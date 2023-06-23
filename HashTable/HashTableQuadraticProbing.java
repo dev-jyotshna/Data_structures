@@ -72,10 +72,27 @@ public class HashTableQuadraticProbing <K,V> implements Iterable <K> {
      modificationCount++;
   }
 
- //Returns the number of keys currently inside the hashTable
- public int size() { return keyCount;}
+  //Returns the number of keys currently inside the hashTable
+  public int size() { return keyCount;}
 
- //Returns true/false depending on whether the hash table is emty
- public boolean isEmpty() { return keyCount == 0;}
+  //Returns true/false depending on whether the hash table is emty
+  public boolean isEmpty() { return keyCount == 0;}
 
-5:36:16
+  //Insert, put and add all place a value in the hash table
+  public V put ( K key, V value) {return insert(key, value); }
+  public V add( K key, V value) { return insert( key, value); }
+
+  //Place a key - value pair into the hash-table. 
+  //If the value already exists inside the hash-table then the value is updated. 
+  public V insert( K key, V val) {
+    
+    if( key == null) throw new IllegalArgumentException(" Null Kay");
+    if( usedBuckets >= threshold) resizeTable();
+
+    final int hash = normalizeIndex(key.hashCode());
+    int i = hash, j = -1, x = 1; // j -> the 1st TOMBSTONE encountered
+
+    do{
+      //The current slot was previously deleted
+      if( keyTable[i] == TOMBSTONE) {
+        if( j == -1 ) j = i;

@@ -160,4 +160,149 @@ public class HashTableQuadraticProbing <K,V> implements Iterable <K> {
 
     do { 
       //Ignore deleted cells, but record where the first index of the deleted cell is found
-      //to per
+      //to perform LAZY RELOCATION later.
+      if( keyTable[i] == TOMBSTONE) {
+        if( j == -1 ) j = i;
+      }
+      //We hit a non-null key, perhaps it's the one we're looking for.
+      else if(keyTable[i] != null){
+        //The key we want is in the hash-table
+        if(keyTable[i].equals(key)) {
+          containsFlag = true;
+          //If j != -1 this means we previously encountered a deleted cell.
+          //We can perform an optimization by swapping the entries in cells i and j
+          //so that the next time we search for this key it will be found faster. AKA lazy deletion.
+          if( j != -1) {
+            //Copy values to where deleted bucket is
+            keyTable[j] = keyTable[i];
+            valueTable[j] = valueTable[i];
+
+            //Clear the contents in bucket i and mark it as deleted
+            keyTable[i] = TOMBSTONE;
+            valueTable[i] = null;
+            return valueTable[j];
+          }
+          else return valueTable[i];
+        }
+      }
+      //Element was not found in the hash-table
+      else {
+        containsFlag = false;
+        return null;
+      }
+
+      i = normalizeIndex(hash + P(x++));
+    }while(true);
+  }
+  
+  //Removes a key from the map and returns the value.
+  //NOTE: returns null if the value is null AND also returns null if the key does not exists.
+  public V remove(K key){
+    if( key == null ) throw new IllegalArgumentException("Null key");
+    final int hash = normalizeIndex(key.hashCode());
+    int i = hash, x = 1;
+
+  //Starting at the hash index quadratically probe until we find a spot where our key is 
+  //or we hit a null element in which case our element does not exists
+  for( ;; i = normalizeIndex(hash + P(x++))) { //Find offset position
+
+    //Ignore deleted cells 
+    if( keyTable[i] == TOMBSTONE) continue;
+
+    //Key was not found in hash-table.
+    if(keyTable[i] == null) return null;
+
+    //The key we want to remove is in the hash-table!
+    if( keyTable[i].equals(key)) {
+      keyCount--;
+      modificationCount++;
+      V oldvalue = valueTable[i];
+      keyTable[i] = TOMBSTONE;
+      valueTable[i] = null;
+      return oldValue;
+    }
+   }
+  }
+  // Returns a list of keys found in the hash table
+public List <K> keys() {
+  List <K> keys = new ArrayList<>(size());
+  for (int i = 0; i < capacity; i++)
+    if (keyTable[i] != null && keyTable[i] != TOMBSTONE)
+      keys.add(keyTable[i]);
+  return keys;
+}
+// Returns a list of non-unique values found in the hash table
+public List <V> values() {
+  List <V> values = new ArrayList<>(size());
+  for (int i = 0; i < capacity; i++)
+    if (keyTable[i] != null && keyTable[i] != TOMBSTONE)
+      values.add(value Table [i]);
+  return values;
+}
+
+// Double the size of the hash-table
+private void resizeTable() {
+  capacity *= 2; // Capacity always poweroftwo
+  threshold = (int) (capacity loadFactor);
+  K[] oldKeyTable = (K[]) new Object [capacity];
+  V[] oldValueTable = (V[]) new Object [capacity];
+
+  // Perform key table pointer swap
+  K[]_keyTableTmp = keyTable;
+  keyTable = oldKeyTable;
+  oldKeyTable keyTableTmp;
+
+  // Perform value table pointer swap
+  V[] valueTableTmp = valueTable;
+  valueTable = oldValueTable;
+  oldValueTable = valueTableTmp;
+
+  // Reset the key count and buckets used since we are about to
+  // re-insert all the keys into the hash-table.
+  keyCount = usedBuckets = 0;
+  for (int i = 0; i < oldKeyTable.length; i++) {
+    if (oldKeyTable[i] != null && oldKeyTable[i] != TOMBSTONE)
+      insert(oldKeyTable[i], oldValueTable[i]);
+    oldValue Table[i] = null;
+    oldKeyTable[i] = null;
+  }
+}
+
+@Override public java.util.Iterator <K> iterator() {
+// Before the iteration begins record the number of modifications
+// done to the hash-table. This value should not change as we iterate
+// otherwise a concurrent modification has occurred.
+final int MODIFICATION_COUNT = modificationCount;
+
+  return new java.util.Iterator <K> () {
+int keys Left =keyCount, index = 0;
+    
+@Override public boolean hasNext() {
+  // The contents of the table have been altered
+  if (MODIFICATION_COUNT != modificationCount) throw new java.util.
+    ConcurrentModificationException();
+  return keys Left != 0;
+}
+    
+// Find the next element and return it
+@Override public K next() {
+  while( keyTable [index] == null || keyTable[index] == TOMBSTONE) index++;
+  keysLeft--;
+  return keyTable[index++];
+}
+    @Override public void remove() {
+      throw new UnsupportedOperationException();
+    }
+  };
+}
+  //Return a String version of this hash-table.
+@Override public String toString() {
+  StringBuilder sb = new StringBuilder();
+  sb.append("{");
+  for (int i = 0; i < capacity; i++)
+    if (keyTable[i] != null && keyTable[i] != TOMBSTONE)
+      sb.append( keyTable[i] + "=>" + valueTable [i] + ", ");
+  sb.append("}");
+  return sb.toString();
+}
+}

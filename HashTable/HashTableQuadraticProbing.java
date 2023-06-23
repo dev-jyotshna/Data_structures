@@ -159,4 +159,5 @@ public class HashTableQuadraticProbing <K,V> implements Iterable <K> {
     //or we hit a null element in which case our element does not exists.
 
     do { 
-      //Ignore deleted cells, 
+      //Ignore deleted cells, but record where the first index of the deleted cell is found
+      //to per

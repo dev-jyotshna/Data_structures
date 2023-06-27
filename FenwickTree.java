@@ -19,3 +19,4 @@ public class FenwickTree {
     this.tree = values.clone();
 
 jyotshna hsgusnge
+  mfhdkkms

@@ -36,4 +36,38 @@ public class FenwickTree {
    //An alternative method is to use the Java's built-in method
    //return Integer.lowestOneBit(i);
  }
-6:11:33
+
+//Compute the prefix sum from [1,i], one based
+public long prefixSum( int i) {
+  long sum = 0L;
+  while ( i != 0) {
+    sum += tree[i];
+    i &= ~lsb(i); //Equuivalent to i -= lsb(i);
+  }
+  return sum;
+}
+
+//Returns the sum of the interval [i,j], one based
+public long sum(int i, int j) {
+  if ( j < i) throw new IllegalArgumentException( "Make sure j >= i");
+  return prefixSum(j) - prefixSum( i - 1);
+}
+
+//Add 'k' to index 'i' one based
+public void add( int i, long k) {
+  while( i < tree.length) {
+    tree[i] += k;
+    i += lsb(i);
+  }
+}
+
+//Set index i to be equal to k , one based
+public void set( int i ,long k) {
+  long value = sum(i,i);
+  add( i, k - value);
+}
+
+@Override public Striing toString() {
+  return java.util.Arrays.toString(tree);
+}
+  
